@@ -9,6 +9,7 @@ use Mustache\Exception as Exception;
 
 class Renderer implements RendererInterface
 {
+    const TEMPLATE_CONTENT_KEY = 'template_content_key';
     /**
      * @var \Mustache_Engine
      */
@@ -28,6 +29,11 @@ class Renderer implements RendererInterface
      * @var string
      */
     protected $suffix;
+    
+    /**
+     * @var string
+     */
+    protected $template_content = '';
 
     public function setEngine(\Mustache_Engine $engine)
     {
@@ -71,6 +77,21 @@ class Renderer implements RendererInterface
      */
     public function render($nameOrModel, $values = null)
     {
+        $mustache = $this->getEngine();
+        
+        if( !is_null( $this->getTemplateContent( $values ) ) )
+        {
+            if( is_array( $values ) && array_key_exists( self::TEMPLATE_CONTENT_KEY, $values ) )
+            {
+                unset( $values[ self::TEMPLATE_CONTENT_KEY ] );
+            }
+            
+            return $mustache->render(
+            $this->getTemplateContent( $values ),
+            $values
+            );
+        }
+        
         if ($nameOrModel instanceof ModelInterface) {
             $model       = $nameOrModel;
             $nameOrModel = $model->getTemplate();
@@ -90,7 +111,6 @@ class Renderer implements RendererInterface
             throw new \Exception(sprintf('Unable to find template "%s".', $nameOrModel));
         }
 
-        $mustache = $this->getEngine();
         return $mustache->render(
             file_get_contents($file),
             $values
@@ -150,5 +170,25 @@ class Renderer implements RendererInterface
     public function getSuffixLocked()
     {
         return $this->suffixLocked;
+    }
+    
+    private function getTemplateContent( $values = array() )
+    {
+        if( !empty( $this->template_content ) )
+        {
+            return $this->template_content;
+        }
+        
+        if( array_key_exists( self::TEMPLATE_CONTENT_KEY ,  $values ) )
+        {  
+            return $values[ self::TEMPLATE_CONTENT_KEY ];
+        }
+        
+        return null;
+    }
+    
+    public function setTemplateContent( $content )
+    {
+        $this->template_content = $content;
     }
 }

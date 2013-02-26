@@ -78,17 +78,18 @@ class Renderer implements RendererInterface
     public function render($nameOrModel, $values = null)
     {
         $mustache = $this->getEngine();
-        
+
         if( !is_null( $this->getTemplateContent( $values ) ) )
         {
             if( is_array( $values ) && array_key_exists( self::TEMPLATE_CONTENT_KEY, $values ) )
             {
+                $str_template = $this->getTemplateContent( $values );
                 unset( $values[ self::TEMPLATE_CONTENT_KEY ] );
             }
-            
+
             return $mustache->render(
-            $this->getTemplateContent( $values ),
-            $values
+            	$str_template,
+            	$values
             );
         }
         
